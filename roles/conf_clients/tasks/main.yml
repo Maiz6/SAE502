@@ -1,0 +1,16 @@
+---
+- name: Générer et distribuer les fichiers clients VPN
+  tasks:
+    - name: Générer le fichier client
+      shell: |
+        echo "yes" | docker run -v {{ playbook_dir }}/openvpn-data/conf:/etc/openvpn --rm kylemanna/openvpn easyrsa build-client-full {{ item }} nopass
+      with_items:
+        - client1
+        - client2
+
+    - name: Récupérer les fichiers clients
+      shell: |
+        docker run -v {{ playbook_dir }}/openvpn-data/conf:/etc/openvpn --rm kylemanna/openvpn ovpn_getclient {{ item }} > {{ playbook_dir }}/clients/{{ item }}.ovpn
+      with_items:
+        - client1
+        - client2

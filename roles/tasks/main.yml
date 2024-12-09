@@ -1,0 +1,37 @@
+---
+- name: Deploy VPN server locally
+  hosts: localhost
+  become: true
+  tasks:
+    - name: S'assurer que Docker est installé
+      apt:
+        name: docker.io
+        state: present
+        update_cache: yes
+
+    - name: S'assurer que docker-compose est installé
+      apt:
+        name: docker-compose
+        state: present
+        update_cache: yes
+
+    - name: Crée un dossier OpenVPN
+      file:
+        path: /opt/openvpn-data/conf
+        state: directory
+        recurse: yes
+
+    - name: Copie du fichier docker-compose
+      copy:
+        src: /home/alex/projet-vpn/docker-compose.yml
+        dest: /opt/docker-compose.yml
+
+    - name: Generation de la conf OpenVPN
+      command: docker run -v /opt/openvpn-data/conf:/etc/openvpn --rm kylemanna/openvpn ovpn_genconfig -u udp://10.0.2.15
+      args:
+        chdir: /opt
+
+    - name: Démarrer le conteneur OpenVPN
+      command: docker-compose -f /opt/docker-compose.yml up -d
+      args:
+        chdir: /opt
